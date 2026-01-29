@@ -152,22 +152,41 @@ Future<Map<String, dynamic>?> obtenerDetalleLimpieza(int idCuarto) async {
   }
 
 
-  // A. Obtener estadísticas (Actuales y Pasadas)
-  Future<Map<String, dynamic>> obtenerEstadisticas() async {
-    final url = Uri.parse("$_baseUrl/estadisticas/generales");
+// --- NUEVO: Obtener lista de semestres para el filtro ---
+  Future<List<dynamic>> obtenerSemestres() async {
     try {
-      final response = await http.get(url).timeout(const Duration(seconds: 15));
+      final response = await http.get(Uri.parse('$_baseUrl/semestres-lista'));
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        return json['data'] ?? [];
+      }
+      return [];
+    } catch (e) {
+      print("Error obteniendo semestres: $e");
+      return [];
+    }
+  }
+// --- MODIFICADO: Acepta idSemestre opcional ---
+  Future<Map<String, dynamic>> obtenerEstadisticas({String? idSemestre}) async {
+    // Construimos la URL. Si hay ID, lo agregamos como parámetro query (?idSemestre=1)
+    String url = "$_baseUrl/estadisticas/generales";
+    if (idSemestre != null) {
+      url += "?idSemestre=$idSemestre";
+    }
+
+    try {
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 15));
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
-      return {'success': false};
+      return {'success': false, 'message': 'Error http ${response.statusCode}'};
     } catch (e) {
       print("Error obteniendo estadísticas: $e");
-      return {'success': false};
+      return {'success': false, 'message': e.toString()};
     }
   }
-
-  // B. Realizar Corte (Solo para Preceptor)
+  
+  // B. Realizar Corte Manual (Reiniciar gráfica del mes)
   Future<bool> realizarCorte(String matriculaPreceptor) async {
     final url = Uri.parse("$_baseUrl/realizar-corte");
     try {

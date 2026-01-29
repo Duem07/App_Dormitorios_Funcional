@@ -97,8 +97,11 @@ class AuthService {
 
 
 // 4. CAMBIAR CONTRASEÑA (Reset)
+  // 4. CAMBIAR CONTRASEÑA (Con depuración)
   Future<bool> resetPassword(String correo, String nuevaPassword) async {
     final url = Uri.parse('${ApiConfig.baseUrl}/auth/reset-password');
+    print("Intentando conectar a: $url"); // Verificamos la URL
+    
     try {
       final response = await http.post(
         url,
@@ -109,10 +112,18 @@ class AuthService {
         }),
       );
 
+      print("Estatus Respuesta: ${response.statusCode}"); // Verificamos el código (200, 404, 500?)
+      print("Cuerpo Respuesta: '${response.body}'");    // Verificamos qué llega (¿Vacío? ¿HTML?)
+
+      if (response.body.isEmpty) {
+        print("ERROR CRÍTICO: El servidor respondió vacío.");
+        return false;
+      }
+
       final data = jsonDecode(response.body);
       return response.statusCode == 200 && data['success'] == true;
     } catch (e) {
-      print("Error reset password: $e");
+      print("Excepción en resetPassword: $e");
       return false;
     }
   }

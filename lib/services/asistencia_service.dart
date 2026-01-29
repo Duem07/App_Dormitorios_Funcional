@@ -34,7 +34,7 @@ class AsistenciaService {
       throw Exception('Error de conexión o al procesar la respuesta: $e');
     }
   }
-
+ 
   Future<Map<String, dynamic>> registrarAsistencia({
     required String matriculaEstudiante,
     required int idTipoCulto,
